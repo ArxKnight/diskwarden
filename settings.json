@@ -1,0 +1,8 @@
+{
+    "webhookUrl": "",
+    "healthThreshold": 90,
+    "smtpServer": "",
+    "smtpPort": 587,
+    "email": "",
+    "emailPassword": ""
+}

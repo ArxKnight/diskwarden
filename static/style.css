@@ -1,0 +1,140 @@
+body {
+    background-color: #121212;
+    color: #e0e0e0;
+}
+
+.table {
+    color: #e0e0e0;
+}
+
+.table th,
+.table td {
+    border-color: #444;
+}
+
+.btn-primary {
+    background-color: #1a73e8;
+    border-color: #1a73e8;
+}
+
+.thead-dark {
+    background-color: #333;
+}
+
+.container {
+    max-width: 90%;
+}
+
+.navbar {
+    margin-bottom: 20px;
+}
+
+.day-mode {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+}
+
+.day-mode .table {
+    color: #000000;
+}
+
+.day-mode .table th,
+.day-mode .table td {
+    border-color: #dddddd;
+}
+
+.day-mode .thead-dark {
+    background-color: #f8f9fa;
+}
+
+.day-mode .btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+}
+
+.card {
+    background-color: #1c1c1c;
+    border-color: #444;
+}
+
+.card-header {
+    background-color: #333;
+    border-color: #444;
+}
+
+.form-text {
+    color: #ccc;
+    margin-bottom: 10px;
+}
+
+.day-mode .card {
+    background-color: #ffffff;
+    border-color: #dddddd;
+}
+
+.day-mode .card-header {
+    background-color: #f8f9fa;
+}
+
+.day-mode .form-text {
+    color: #6c757d;
+}
+
+.container h1 {
+    margin-bottom: 20px;
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 30px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 30px;
+    background-image: url('/static/moon.svg');
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 22px;
+    width: 22px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: #ffeb3b;
+    background-image: url('/static/img/sun.svg');
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+input:checked + .slider:before {
+    transform: translateX(30px);
+}
+
+.notification-section {
+    margin-top: 20px;
+}

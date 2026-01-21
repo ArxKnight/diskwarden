@@ -1,0 +1,6 @@
+Flask==2.0.2
+flask-bootstrap==3.3.7.1
+apscheduler==3.7.0
+Flask-Mail==0.9.1
+Werkzeug==2.0.2
+requests==2.25.1

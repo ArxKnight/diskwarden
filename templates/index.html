@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HDSentinel-Extended</title>
+    <link rel="icon" type="image/x-icon" href="static/favicon.ico">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.7.2/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="static/style.css">
+</head>
+<body class="night-mode">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <a class="navbar-brand" href="/">
+            HDSentinel-Extended
+        </a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/">Disks</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/settings">Settings</a>
+                </li>
+            </ul>
+            <div class="form-inline">
+                <label class="switch">
+                    <input type="checkbox" id="modeToggle" onclick="toggleMode()">
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+    </nav>
+    <div class="container mt-5">
+        <h1 class="text-center">Disk Health Monitor</h1>
+        <div class="text-center">
+            <button class="btn btn-primary" onclick="fetchDiskHealth()">Get Disk Health</button>
+            <p id="lastUpdated" class="text-muted mt-2"></p>
+        </div>
+        <table class="table table-striped mt-4">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Device</th>
+                    <th>Model ID</th>
+                    <th>Serial No</th>
+                    <th>Size</th>
+                    <th>Temperature</th>
+                    <th>Highest Temp</th>
+                    <th>Health</th>
+                    <th>Performance</th>
+                    <th>Power on Time</th>
+                    <th>Estimated Lifetime</th>
+                </tr>
+            </thead>
+            <tbody id="diskTableBody">
+            </tbody>
+        </table>
+    </div>
+    <script>
+        function fetchDiskHealth() {
+            fetch('/api/disk_health')
+                .then(response => response.json())
+                .then(data => {
+                    const tableBody = document.getElementById('diskTableBody');
+                    tableBody.innerHTML = '';
+                    data.forEach(disk => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${disk.device}</td>
+                            <td>${disk.model_id}</td>
+                            <td>${disk.serial_no}</td>
+                            <td>${convertSize(disk.size)}</td>
+                            <td>${disk.temperature}</td>
+                            <td>${disk.highest_temp}</td>
+                            <td>${disk.health}</td>
+                            <td>${disk.performance}</td>
+                            <td>${disk.power_on_time}</td>
+                            <td>${disk.lifetime}</td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+                    updateLastUpdated();
+                })
+                .catch(error => console.error('Error fetching disk health:', error));
+        }
+
+        function convertSize(size) {
+            const units = ['MB', 'GB', 'TB'];
+            let index = 0;
+            let newSize = parseFloat(size);
+            while (newSize >= 1024 && index < units.length - 1) {
+                newSize /= 1024;
+                index++;
+            }
+            return `${newSize.toFixed(2)} ${units[index]}`;
+        }
+
+        function updateLastUpdated() {
+            const now = new Date();
+            const formattedDate = now.toLocaleDateString();
+            const formattedTime = now.toLocaleTimeString();
+            document.getElementById('lastUpdated').textContent = `Last updated: ${formattedDate}, ${formattedTime}`;
+        }
+
+        function toggleMode() {
+            const modeToggle = document.getElementById('modeToggle');
+            if (modeToggle.checked) {
+                document.body.classList.remove('night-mode');
+                document.body.classList.add('day-mode');
+                localStorage.setItem('theme', 'day');
+            } else {
+                document.body.classList.remove('day-mode');
+                document.body.classList.add('night-mode');
+                localStorage.setItem('theme', 'night');
+            }
+        }
+
+        function loadTheme() {
+            const theme = localStorage.getItem('theme');
+            const modeToggle = document.getElementById('modeToggle');
+            if (theme === 'day') {
+                document.body.classList.add('day-mode');
+                modeToggle.checked = true;
+            } else {
+                document.body.classList.add('night-mode');
+                modeToggle.checked = false;
+            }
+        }
+
+        function startAutoRefresh() {
+            fetchDiskHealth();
+            setInterval(fetchDiskHealth, 60000);
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTheme();
+            startAutoRefresh();
+        });
+    </script>
+</body>
+</html>
