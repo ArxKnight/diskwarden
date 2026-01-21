@@ -1,0 +1,68 @@
+# DiskWarden
+
+DiskWarden is a lightweight disk health monitoring and alerting tool built around
+**HDSentinel**, with a simple web UI and notification support via **Discord** and **email**.
+
+It is designed for servers and homelabs where early warning of disk degradation
+is critical, but heavyweight monitoring stacks are unnecessary.
+
+---
+
+## Features
+
+- Reads disk health data directly from **HDSentinel**
+- Web-based dashboard (Flask)
+- Configurable health thresholds
+- Discord webhook notifications
+- Email alerts via SMTP
+- Simple JSON-based configuration
+- Docker support
+
+---
+
+## How It Works
+
+DiskWarden runs HDSentinel on the host system and parses its output to extract:
+
+- Disk model
+- Serial number
+- Capacity
+- Interface type
+- Temperature
+- Highest recorded temperature
+- Health percentage
+- Performance percentage
+- Power-on time
+- Estimated remaining lifetime
+
+If a disk’s health drops below the configured threshold, DiskWarden can notify
+you via Discord and/or email.
+
+---
+
+## Web Interface
+
+DiskWarden exposes a small web UI that allows you to:
+
+- View detected disks and their health
+- See temperatures, health %, and lifetime estimates
+- Adjust alert settings through the settings page
+
+By default, the web interface listens on: http://<host>:7500
+
+
+---
+
+## Requirements
+
+### Host Requirements
+- **Python 3.9+**
+- **HDSentinel** installed and accessible on the machine running DiskWarden  
+  (DiskWarden relies on HDSentinel output for disk health data.)
+
+### Python Dependencies
+Install the required Python packages:
+
+```bash
+pip install -r requirements.txt
+
