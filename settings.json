@@ -4,5 +4,14 @@
     "smtpServer": "",
     "smtpPort": 587,
     "email": "",
-    "emailPassword": ""
+    "emailPassword": "",
+    "scanIntervalSeconds": 60,
+    "notifyOnRecovery": false,
+    "alertCooldownMinutes": 0,
+    "influxEnabled": false,
+    "influxUrl": "http://influxdb:8086",
+    "influxToken": "",
+    "influxOrg": "diskwarden",
+    "influxBucket": "diskwarden",
+    "grafanaUrl": ""
 }

@@ -27,5 +27,9 @@ COPY . .
 # Expose port 7500
 EXPOSE 7500
 
+# Environment variables
+# DISKWARDEN_SCANNER=1 enables the background scanner (default: enabled)
+ENV DISKWARDEN_SCANNER=1
+
 # Run the application
 CMD ["python3", "app.py"]

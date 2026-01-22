@@ -37,15 +37,32 @@
     </nav>
     <div class="container mt-5">
         <h1 class="text-center page-title">Settings</h1>
+        
         <div class="card mt-4 notification-section">
             <div class="card-header">
-                Health Threshold Settings
+                Scanner Settings
             </div>
             <div class="card-body">
-                <form id="thresholdForm">
+                <form id="scannerForm">
+                    <div class="form-group">
+                        <label for="scanIntervalSeconds">Scan Interval (seconds)</label>
+                        <small class="form-text text-muted">How often to scan disk health. Recommended: 60-300 seconds.</small>
+                        <input type="number" class="form-control" id="scanIntervalSeconds" min="10" max="3600" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save Scanner Settings</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card mt-4 notification-section">
+            <div class="card-header">
+                Alert Settings
+            </div>
+            <div class="card-body">
+                <form id="alertForm">
                     <div class="form-group">
                         <label for="healthThreshold">Health Threshold (%)</label>
-                        <small class="form-text text-muted">Set the health percentage threshold for sending notifications about disk health to your Discord server and email.</small>
+                        <small class="form-text text-muted">Set the health percentage threshold for sending notifications about disk health.</small>
                         <select class="form-control" id="healthThreshold" required style="width: auto;">
                             <option value="10">10%</option>
                             <option value="20">20%</option>
@@ -58,10 +75,23 @@
                             <option value="90">90%</option>
                         </select>
                     </div>
-                    <button type="submit" class="btn btn-primary">Save Threshold</button>
+                    <div class="form-group">
+                        <label for="notifyOnRecovery">
+                            <input type="checkbox" id="notifyOnRecovery">
+                            Notify on Recovery
+                        </label>
+                        <small class="form-text text-muted">Send an alert when a disk recovers and health goes back above the threshold.</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="alertCooldownMinutes">Alert Cooldown (minutes)</label>
+                        <small class="form-text text-muted">Send reminder alerts every N minutes for disks still below threshold. 0 = disabled.</small>
+                        <input type="number" class="form-control" id="alertCooldownMinutes" min="0" max="10080" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save Alert Settings</button>
                 </form>
             </div>
         </div>
+
         <div class="card mt-4 notification-section">
             <div class="card-header">
                 Discord Notification Settings
@@ -70,14 +100,15 @@
                 <form id="settingsForm">
                     <div class="form-group">
                         <label for="webhookUrl">Discord Webhook URL</label>
-                        <small class="form-text text-muted">Add a webhook URL to send notifications to your discord server when the health of a disk goes under your specified value.</small>
-                        <input type="url" class="form-control" id="webhookUrl" required>
+                        <small class="form-text text-muted">Add a webhook URL to send notifications to your Discord server (optional).</small>
+                        <input type="url" class="form-control" id="webhookUrl">
                     </div>
-                    <button type="submit" class="btn btn-primary">Save Settings</button>
+                    <button type="submit" class="btn btn-primary">Save Discord Settings</button>
                     <button type="button" class="btn btn-secondary" onclick="sendTestMessage()">Send Test Message</button>
                 </form>
             </div>
         </div>
+
         <div class="card mt-4 notification-section">
             <div class="card-header">
                 Email Notification Settings
@@ -86,170 +117,197 @@
                 <form id="emailSettingsForm">
                     <div class="form-group">
                         <label for="smtpServer">SMTP Server</label>
-                        <small class="form-text text-muted">Enter your email provider's SMTP server address.</small>
-                        <input type="text" class="form-control" id="smtpServer" required>
+                        <small class="form-text text-muted">Enter your email provider's SMTP server address (optional).</small>
+                        <input type="text" class="form-control" id="smtpServer">
                     </div>
                     <div class="form-group">
                         <label for="smtpPort">SMTP Port</label>
                         <small class="form-text text-muted">Enter your email provider's SMTP port number (default is 587).</small>
-                        <input type="number" class="form-control" id="smtpPort" required>
+                        <input type="number" class="form-control" id="smtpPort">
                     </div>
                     <div class="form-group">
                         <label for="email">Email</label>
-                        <small class="form-text text-muted">Enter the email address to send notifications from.</small>
-                        <input type="email" class="form-control" id="email" required>
+                        <small class="form-text text-muted">Enter the email address to send notifications from (optional).</small>
+                        <input type="email" class="form-control" id="email">
                     </div>
                     <div class="form-group">
                         <label for="emailPassword">Email Password</label>
                         <small class="form-text text-muted">Enter the password for the email address.</small>
-                        <input type="password" class="form-control" id="emailPassword" required>
+                        <input type="password" class="form-control" id="emailPassword">
                     </div>
                     <button type="submit" class="btn btn-primary">Save Email Settings</button>
                     <button type="button" class="btn btn-secondary" onclick="sendTestEmail()">Send Test Email</button>
                 </form>
             </div>
         </div>
+
+        <div class="card mt-4 notification-section">
+            <div class="card-header">
+                InfluxDB & Grafana Settings
+            </div>
+            <div class="card-body">
+                <form id="influxForm">
+                    <div class="form-group">
+                        <label for="influxEnabled">
+                            <input type="checkbox" id="influxEnabled">
+                            Enable InfluxDB Metrics
+                        </label>
+                        <small class="form-text text-muted">Send disk metrics to InfluxDB for long-term storage and Grafana visualization.</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="influxUrl">InfluxDB URL</label>
+                        <small class="form-text text-muted">e.g., http://influxdb:8086 or http://localhost:8086</small>
+                        <input type="url" class="form-control" id="influxUrl" placeholder="http://influxdb:8086">
+                    </div>
+                    <div class="form-group">
+                        <label for="influxToken">InfluxDB API Token</label>
+                        <small class="form-text text-muted">Create an API token in InfluxDB UI.</small>
+                        <input type="password" class="form-control" id="influxToken">
+                    </div>
+                    <div class="form-group">
+                        <label for="influxOrg">InfluxDB Organization</label>
+                        <small class="form-text text-muted">Default: diskwarden</small>
+                        <input type="text" class="form-control" id="influxOrg" placeholder="diskwarden">
+                    </div>
+                    <div class="form-group">
+                        <label for="influxBucket">InfluxDB Bucket</label>
+                        <small class="form-text text-muted">Default: diskwarden</small>
+                        <input type="text" class="form-control" id="influxBucket" placeholder="diskwarden">
+                    </div>
+                    <div class="form-group">
+                        <label for="grafanaUrl">Grafana URL (optional)</label>
+                        <small class="form-text text-muted">e.g., http://grafana:3000 - adds a Grafana link to navbar.</small>
+                        <input type="url" class="form-control" id="grafanaUrl">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save InfluxDB Settings</button>
+                </form>
+            </div>
+        </div>
+
         <div id="notification" class="alert mt-3" role="alert" style="display: none;"></div>
     </div>
     <script>
-        document.getElementById('settingsForm').addEventListener('submit', function(event) {
+        function showNotification(message, isError = false) {
+            const notification = document.getElementById('notification');
+            notification.innerText = message;
+            notification.className = isError ? 'alert alert-danger' : 'alert alert-success';
+            notification.style.display = 'block';
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 5000);
+        }
+
+        // Scanner Settings
+        document.getElementById('scannerForm')?.addEventListener('submit', function(event) {
+            event.preventDefault();
+            const scanIntervalSeconds = document.getElementById('scanIntervalSeconds').value;
+            fetch('/api/settings', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ scanIntervalSeconds: parseInt(scanIntervalSeconds) }),
+            })
+            .then(response => response.json())
+            .then(data => showNotification('Scanner settings saved successfully!'))
+            .catch(error => showNotification('Failed to save scanner settings: ' + error.message, true));
+        });
+
+        // Alert Settings
+        document.getElementById('alertForm')?.addEventListener('submit', function(event) {
+            event.preventDefault();
+            const healthThreshold = document.getElementById('healthThreshold').value;
+            const notifyOnRecovery = document.getElementById('notifyOnRecovery').checked;
+            const alertCooldownMinutes = document.getElementById('alertCooldownMinutes').value;
+            
+            fetch('/api/settings', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ 
+                    healthThreshold: parseInt(healthThreshold),
+                    notifyOnRecovery: notifyOnRecovery,
+                    alertCooldownMinutes: parseInt(alertCooldownMinutes)
+                }),
+            })
+            .then(response => response.json())
+            .then(data => showNotification('Alert settings saved successfully!'))
+            .catch(error => showNotification('Failed to save alert settings: ' + error.message, true));
+        });
+
+        // Discord Settings
+        document.getElementById('settingsForm')?.addEventListener('submit', function(event) {
             event.preventDefault();
             const webhookUrl = document.getElementById('webhookUrl').value;
             fetch('/api/settings', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({ webhookUrl }),
             })
             .then(response => response.json())
-            .then(data => {
-                const notification = document.getElementById('notification');
-                notification.innerText = 'Discord settings saved successfully!';
-                notification.className = 'alert alert-success';
-                notification.style.display = 'block';
-                setTimeout(() => {
-                    notification.style.display = 'none';
-                }, 5000);
-            })
-            .catch(error => {
-                const notification = document.getElementById('notification');
-                notification.innerText = 'Failed to save Discord settings.';
-                notification.className = 'alert alert-danger';
-                notification.style.display = 'block';
-                setTimeout(() => {
-                    notification.style.display = 'none';
-                }, 5000);
-                console.error('Error saving Discord settings:', error);
-            });
+            .then(data => showNotification('Discord settings saved successfully!'))
+            .catch(error => showNotification('Failed to save Discord settings: ' + error.message, true));
         });
 
-        document.getElementById('thresholdForm').addEventListener('submit', function(event) {
-            event.preventDefault();
-            const healthThreshold = document.getElementById('healthThreshold').value;
-            fetch('/api/settings', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ healthThreshold }),
-            })
-            .then(response => response.json())
-            .then(data => {
-                const notification = document.getElementById('notification');
-                notification.innerText = 'Health threshold saved successfully!';
-                notification.className = 'alert alert-success';
-                notification.style.display = 'block';
-                setTimeout(() => {
-                    notification.style.display = 'none';
-                }, 5000);
-            })
-            .catch(error => {
-                const notification = document.getElementById('notification');
-                notification.innerText = 'Failed to save health threshold.';
-                notification.className = 'alert alert-danger';
-                notification.style.display = 'block';
-                setTimeout(() => {
-                    notification.style.display = 'none';
-                }, 5000);
-                console.error('Error saving health threshold:', error);
-            });
-        });
-
-        document.getElementById('emailSettingsForm').addEventListener('submit', function(event) {
+        // Email Settings
+        document.getElementById('emailSettingsForm')?.addEventListener('submit', function(event) {
             event.preventDefault();
             const smtpServer = document.getElementById('smtpServer').value;
             const smtpPort = document.getElementById('smtpPort').value;
             const email = document.getElementById('email').value;
             const emailPassword = document.getElementById('emailPassword').value;
+            
             fetch('/api/email_settings', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ smtpServer, smtpPort, email, emailPassword }),
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ smtpServer, smtpPort: parseInt(smtpPort), email, emailPassword }),
             })
             .then(response => response.json())
-            .then(data => {
-                const notification = document.getElementById('notification');
-                notification.innerText = 'Email settings saved successfully!';
-                notification.className = 'alert alert-success';
-                notification.style.display = 'block';
-                setTimeout(() => {
-                    notification.style.display = 'none';
-                }, 5000);
+            .then(data => showNotification('Email settings saved successfully!'))
+            .catch(error => showNotification('Failed to save email settings: ' + error.message, true));
+        });
+
+        // InfluxDB Settings
+        document.getElementById('influxForm')?.addEventListener('submit', function(event) {
+            event.preventDefault();
+            const influxEnabled = document.getElementById('influxEnabled').checked;
+            const influxUrl = document.getElementById('influxUrl').value;
+            const influxToken = document.getElementById('influxToken').value;
+            const influxOrg = document.getElementById('influxOrg').value;
+            const influxBucket = document.getElementById('influxBucket').value;
+            const grafanaUrl = document.getElementById('grafanaUrl').value;
+            
+            fetch('/api/settings', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ 
+                    influxEnabled,
+                    influxUrl: influxUrl || 'http://influxdb:8086',
+                    influxToken,
+                    influxOrg: influxOrg || 'diskwarden',
+                    influxBucket: influxBucket || 'diskwarden',
+                    grafanaUrl
+                }),
             })
-            .catch(error => {
-                const notification = document.getElementById('notification');
-                notification.innerText = 'Failed to save email settings.';
-                notification.className = 'alert alert-danger';
-                notification.style.display = 'block';
-                setTimeout(() => {
-                    notification.style.display = 'none';
-                }, 5000);
-                console.error('Error saving email settings:', error);
-            });
+            .then(response => response.json())
+            .then(data => showNotification('InfluxDB settings saved successfully!'))
+            .catch(error => showNotification('Failed to save InfluxDB settings: ' + error.message, true));
         });
 
         function sendTestMessage() {
             const webhookUrl = document.getElementById('webhookUrl').value;
             if (!webhookUrl) {
-                const notification = document.getElementById('notification');
-                notification.innerText = 'Please enter a webhook URL to send a test message.';
-                notification.className = 'alert alert-warning';
-                notification.style.display = 'block';
-                setTimeout(() => {
-                    notification.style.display = 'none';
-                }, 5000);
+                showNotification('Please enter a webhook URL to send a test message.', true);
                 return;
             }
             fetch('/api/test_message', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({ webhookUrl }),
             })
             .then(response => response.json())
             .then(data => {
-                const notification = document.getElementById('notification');
-                notification.innerText = 'Test message sent successfully!';
-                notification.className = 'alert alert-success';
-                notification.style.display = 'block';
-                setTimeout(() => {
-                    notification.style.display = 'none';
-                }, 5000);
+                if (data.error) showNotification('Error: ' + data.error, true);
+                else showNotification('Test message sent successfully!');
             })
-            .catch(error => {
-                const notification = document.getElementById('notification');
-                notification.innerText = 'Failed to send test message.';
-                notification.className = 'alert alert-danger';
-                notification.style.display = 'block';
-                setTimeout(() => {
-                    notification.style.display = 'none';
-                }, 5000);
-                console.error('Error sending test message:', error);
-            });
+            .catch(error => showNotification('Error: ' + error.message, true));
         }
 
         function sendTestEmail() {
@@ -259,47 +317,21 @@
             const emailPassword = document.getElementById('emailPassword').value;
             
             if (!email || !smtpServer || !smtpPort || !emailPassword) {
-                const notification = document.getElementById('notification');
-                notification.innerText = 'Please fill in all email settings before sending a test email.';
-                notification.className = 'alert alert-warning';
-                notification.style.display = 'block';
-                setTimeout(() => {
-                    notification.style.display = 'none';
-                }, 5000);
+                showNotification('Please fill in all email settings before sending a test email.', true);
                 return;
             }
+            
             fetch('/api/test_email', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ email, smtpServer, smtpPort, emailPassword }),
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ email, smtpServer, smtpPort: parseInt(smtpPort), emailPassword }),
             })
             .then(response => response.json())
             .then(data => {
-                const notification = document.getElementById('notification');
-                if (data.error) {
-                    notification.innerText = 'Failed to send test email: ' + data.error;
-                    notification.className = 'alert alert-danger';
-                } else {
-                    notification.innerText = 'Test email sent successfully! Check your inbox.';
-                    notification.className = 'alert alert-success';
-                }
-                notification.style.display = 'block';
-                setTimeout(() => {
-                    notification.style.display = 'none';
-                }, 5000);
+                if (data.error) showNotification('Error: ' + data.error, true);
+                else showNotification('Test email sent successfully! Check your inbox.');
             })
-            .catch(error => {
-                const notification = document.getElementById('notification');
-                notification.innerText = 'Failed to send test email: ' + error.message;
-                notification.className = 'alert alert-danger';
-                notification.style.display = 'block';
-                setTimeout(() => {
-                    notification.style.display = 'none';
-                }, 5000);
-                console.error('Error sending test email:', error);
-            });
+            .catch(error => showNotification('Error: ' + error.message, true));
         }
 
         function toggleMode() {
@@ -329,22 +361,38 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             loadTheme();
+            
+            // Load existing settings
+            fetch('/api/settings')
+                .then(response => response.json())
+                .then(data => {
+                    // Scanner
+                    document.getElementById('scanIntervalSeconds').value = data.scanIntervalSeconds || 60;
+                    
+                    // Alerts
+                    document.getElementById('healthThreshold').value = data.healthThreshold || 90;
+                    document.getElementById('notifyOnRecovery').checked = data.notifyOnRecovery || false;
+                    document.getElementById('alertCooldownMinutes').value = data.alertCooldownMinutes || 0;
+                    
+                    // Discord
+                    document.getElementById('webhookUrl').value = data.webhookUrl || '';
+                    
+                    // Email
+                    document.getElementById('smtpServer').value = data.smtpServer || '';
+                    document.getElementById('smtpPort').value = data.smtpPort || 587;
+                    document.getElementById('email').value = data.email || '';
+                    document.getElementById('emailPassword').value = data.emailPassword || '';
+                    
+                    // InfluxDB
+                    document.getElementById('influxEnabled').checked = data.influxEnabled || false;
+                    document.getElementById('influxUrl').value = data.influxUrl || 'http://influxdb:8086';
+                    document.getElementById('influxToken').value = data.influxToken || '';
+                    document.getElementById('influxOrg').value = data.influxOrg || 'diskwarden';
+                    document.getElementById('influxBucket').value = data.influxBucket || 'diskwarden';
+                    document.getElementById('grafanaUrl').value = data.grafanaUrl || '';
+                })
+                .catch(error => console.error('Error loading settings:', error));
         });
-
-        // Load existing settings
-        fetch('/api/settings')
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById('webhookUrl').value = data.webhookUrl || '';
-                document.getElementById('healthThreshold').value = data.healthThreshold || '90';
-                document.getElementById('smtpServer').value = data.smtpServer || '';
-                document.getElementById('smtpPort').value = data.smtpPort || 587;
-                document.getElementById('email').value = data.email || '';
-                document.getElementById('emailPassword').value = data.emailPassword || '';
-            })
-            .catch(error => {
-                console.error('Error loading settings:', error);
-            });
     </script>
 </body>
 </html>

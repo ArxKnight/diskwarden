@@ -38,8 +38,10 @@
     <div class="container mt-5">
         <h1 class="text-center page-title">Disk Health Monitor</h1>
         <div class="text-center">
-            <button class="btn btn-primary" onclick="fetchDiskHealth()">Get Disk Health</button>
+            <button class="btn btn-primary" onclick="fetchDiskHealth()">Refresh Disk Health</button>
+            <button class="btn btn-secondary" onclick="scanNow()" id="scanBtn">Scan Now</button>
             <p id="lastUpdated" class="text-muted mt-2"></p>
+            <p id="scannerStatus" class="text-muted small"></p>
         </div>
         <table class="table table-striped mt-4">
             <thead class="thead-dark">
@@ -64,16 +66,26 @@
         let currentData = [];
         let currentSortColumn = -1;
         let sortAscending = true;
+        let lastScanTime = null;
 
         function fetchDiskHealth() {
             fetch('/api/disk_health')
-                .then(response => response.json())
+                .then(response => {
+                    if (response.status === 503) {
+                        throw new Error('No scan data available - background scanner may not be running');
+                    }
+                    return response.json();
+                })
                 .then(data => {
                     currentData = data;
                     renderTable(data);
                     updateLastUpdated();
+                    updateScannerStatus();
                 })
-                .catch(error => console.error('Error fetching disk health:', error));
+                .catch(error => {
+                    console.error('Error fetching disk health:', error);
+                    alert('Error: ' + error.message);
+                });
         }
 
         function renderTable(data) {
@@ -149,10 +161,59 @@
         }
 
         function updateLastUpdated() {
-            const now = new Date();
-            const formattedDate = now.toLocaleDateString();
-            const formattedTime = now.toLocaleTimeString();
+            if (!lastScanTime) {
+                document.getElementById('lastUpdated').textContent = 'Last updated: No data available';
+                return;
+            }
+            const date = new Date(lastScanTime);
+            const formattedDate = date.toLocaleDateString();
+            const formattedTime = date.toLocaleTimeString();
             document.getElementById('lastUpdated').textContent = `Last updated: ${formattedDate}, ${formattedTime}`;
+        }
+
+        function updateScannerStatus() {
+            fetch('/api/status')
+                .then(response => response.json())
+                .then(data => {
+                    let statusText = `Scanner: ${data.scanner_running ? '✓ Running' : '✗ Offline'}`;
+                    if (data.disks_below_threshold > 0) {
+                        statusText += ` | ⚠️ ${data.disks_below_threshold} disk(s) below threshold`;
+                    }
+                    if (data.next_scan) {
+                        const nextDate = new Date(data.next_scan);
+                        statusText += ` | Next scan: ${nextDate.toLocaleTimeString()}`;
+                    }
+                    document.getElementById('scannerStatus').textContent = statusText;
+                })
+                .catch(error => console.error('Error fetching status:', error));
+        }
+
+        function scanNow() {
+            const btn = document.getElementById('scanBtn');
+            btn.disabled = true;
+            btn.textContent = 'Scanning...';
+            
+            fetch('/api/scan_now', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert('Scan failed: ' + data.error);
+                    } else {
+                        // Wait a moment then fetch the new data
+                        setTimeout(() => {
+                            fetchDiskHealth();
+                            updateScannerStatus();
+                        }, 500);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error triggering scan:', error);
+                    alert('Failed to trigger scan');
+                })
+                .finally(() => {
+                    btn.disabled = false;
+                    btn.textContent = 'Scan Now';
+                });
         }
 
         function toggleMode() {
@@ -182,7 +243,8 @@
 
         function startAutoRefresh() {
             fetchDiskHealth();
-            setInterval(fetchDiskHealth, 60000);
+            // Refresh every 30 seconds to show latest cached data from background scanner
+            setInterval(fetchDiskHealth, 30000);
         }
 
         document.addEventListener('DOMContentLoaded', function() {
