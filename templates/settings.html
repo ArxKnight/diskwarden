@@ -94,6 +94,19 @@
 
         <div class="card mt-4 notification-section">
             <div class="card-header">
+                Per-Disk Alert Settings
+            </div>
+            <div class="card-body">
+                <p class="text-muted">Disable alerts for specific disks (e.g., USB drives that don't report health properly).</p>
+                <div id="diskAlertSettings" class="mb-3">
+                    <p class="text-muted">Loading disk list...</p>
+                </div>
+                <button type="button" class="btn btn-primary" onclick="saveDiskAlertSettings()">Save Disk Alert Settings</button>
+            </div>
+        </div>
+
+        <div class="card mt-4 notification-section">
+            <div class="card-header">
                 Discord Notification Settings
             </div>
             <div class="card-body">
@@ -390,9 +403,76 @@
                     document.getElementById('influxOrg').value = data.influxOrg || 'diskwarden';
                     document.getElementById('influxBucket').value = data.influxBucket || 'diskwarden';
                     document.getElementById('grafanaUrl').value = data.grafanaUrl || '';
+                    
+                    // Load disk alert settings
+                    loadDiskAlertSettings(data.disabledDisks || {});
                 })
                 .catch(error => console.error('Error loading settings:', error));
         });
+
+        function loadDiskAlertSettings(disabledDisks) {
+            // Fetch disk list from API
+            fetch('/api/disk_health')
+                .then(response => {
+                    if (response.status === 503) return null;
+                    return response.json();
+                })
+                .then(data => {
+                    if (!data) {
+                        document.getElementById('diskAlertSettings').innerHTML = '<p class="text-muted">No disk data available yet. Run a scan first.</p>';
+                        return;
+                    }
+                    
+                    const disks = Array.isArray(data) ? data : (data.disks || []);
+                    let html = '';
+                    
+                    if (disks.length === 0) {
+                        html = '<p class="text-muted">No disks found.</p>';
+                    } else {
+                        html = '<div style="max-height: 300px; overflow-y: auto;">';
+                        disks.forEach(disk => {
+                            const diskId = disk.serial_no || disk.device || 'unknown';
+                            const isDisabled = disabledDisks[diskId] === true;
+                            const label = `${disk.device} (${disk.model_id || 'Unknown Model'})${disk.serial_no ? ' - SN: ' + disk.serial_no : ''}`;
+                            
+                            html += `
+                                <div class="form-check">
+                                    <input class="form-check-input diskAlertToggle" type="checkbox" 
+                                           id="disk_${diskId}" 
+                                           data-disk-id="${diskId}"
+                                           ${isDisabled ? 'checked' : ''}>
+                                    <label class="form-check-label" for="disk_${diskId}" style="margin-left: 0.5rem;">
+                                        Disable alerts for: <strong>${label}</strong>
+                                    </label>
+                                </div>
+                            `;
+                        });
+                        html += '</div>';
+                    }
+                    
+                    document.getElementById('diskAlertSettings').innerHTML = html;
+                })
+                .catch(error => console.error('Error loading disk list:', error));
+        }
+
+        function saveDiskAlertSettings() {
+            const disabledDisks = {};
+            
+            document.querySelectorAll('.diskAlertToggle').forEach(checkbox => {
+                if (checkbox.checked) {
+                    disabledDisks[checkbox.getAttribute('data-disk-id')] = true;
+                }
+            });
+            
+            fetch('/api/settings', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ disabledDisks }),
+            })
+            .then(response => response.json())
+            .then(data => showNotification('Disk alert settings saved successfully!'))
+            .catch(error => showNotification('Failed to save disk settings: ' + error.message, true));
+        }
     </script>
 </body>
 </html>

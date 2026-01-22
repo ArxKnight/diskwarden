@@ -1,9 +1,13 @@
 # Use a base image with glibc
 FROM ubuntu:20.04
 
-# Install necessary packages
-RUN apt-get update && \
-    apt-get install -y python3 python3-pip wget unzip sudo
+# Install necessary packages and set timezone non-interactively
+RUN DEBIAN_FRONTEND=noninteractive apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y python3 python3-pip wget unzip sudo tzdata
+
+# Set timezone to UTC by default
+RUN ln -fs /usr/share/zoneinfo/UTC /etc/localtime && \
+    dpkg-reconfigure -f noninteractive tzdata
 
 # Set working directory
 WORKDIR /app
@@ -29,7 +33,9 @@ EXPOSE 7500
 
 # Environment variables
 # DISKWARDEN_SCANNER=1 enables the background scanner (default: enabled)
-ENV DISKWARDEN_SCANNER=1
+# TZ=UTC sets the timezone to avoid tzlocal errors on systems with non-zoneinfo timezones
+ENV DISKWARDEN_SCANNER=1 \
+    TZ=UTC
 
 # Run the application
 CMD ["python3", "app.py"]

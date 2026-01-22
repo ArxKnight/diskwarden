@@ -8,10 +8,12 @@
     "scanIntervalSeconds": 60,
     "notifyOnRecovery": false,
     "alertCooldownMinutes": 0,
-    "influxEnabled": false,
+    "timezone": "UTC",
+    "influxEnabled": true,
     "influxUrl": "http://influxdb:8086",
     "influxToken": "",
     "influxOrg": "diskwarden",
     "influxBucket": "diskwarden",
-    "grafanaUrl": ""
+    "grafanaUrl": "",
+    "disabledDisks": {}
 }

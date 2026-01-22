@@ -113,7 +113,7 @@ body {
     background-color: #ccc;
     transition: .4s;
     border-radius: 30px;
-    background-image: url('/static/moon.svg');
+    background-image: url('/static/img/moon.svg');
     background-repeat: no-repeat;
     background-position: center;
 }

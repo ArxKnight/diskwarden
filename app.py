@@ -3,6 +3,7 @@ DiskWarden - Flask-based disk health monitoring service with background scanning
 """
 
 import os
+import sys
 import json
 import logging
 from datetime import datetime, timedelta
@@ -12,6 +13,16 @@ from flask_mail import Mail, Message
 import requests
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
+
+# Set timezone early to prevent tzlocal errors
+# Default to UTC, can be overridden by environment variable or settings
+default_tz = os.environ.get('TZ', 'UTC')
+os.environ['TZ'] = default_tz
+try:
+    import time
+    time.tzset()
+except AttributeError:
+    pass  # Windows doesn't have tzset()
 
 from scanner import run_hd_sentinel, get_disk_identity, get_health_percent
 from state_tracker import DiskStateTracker
@@ -33,7 +44,19 @@ last_scan_time = None
 scan_in_progress = False
 state_tracker = DiskStateTracker()
 influx_writer = InfluxDBWriter()
-scheduler = BackgroundScheduler()
+
+# Configure scheduler with explicit timezone to avoid tzlocal errors
+# This prevents APScheduler from trying to auto-detect timezone
+# which can fail on systems with non-standard timezone configurations
+try:
+    scheduler = BackgroundScheduler(
+        timezone='UTC',
+        job_defaults={'coalesce': True, 'max_instances': 1}
+    )
+except Exception as e:
+    logger.error(f"Failed to initialize scheduler with UTC: {e}")
+    # Last resort: use a minimal configuration
+    scheduler = BackgroundScheduler(job_defaults={'coalesce': True, 'max_instances': 1})
 
 
 def load_settings():
@@ -132,11 +155,17 @@ def perform_disk_scan():
         alert_cooldown_minutes = int(settings.get('alertCooldownMinutes', 0))
         webhook_url = settings.get('webhookUrl', '')
         email = settings.get('email', '')
+        disabled_disks = settings.get('disabledDisks', {})
         
         # Process each disk for state tracking and alerts
         for disk in disks:
             disk_id = get_disk_identity(disk)
             health_percent = get_health_percent(disk)
+            
+            # Check if alerts are disabled for this disk
+            if disabled_disks.get(disk_id, False):
+                logger.debug(f"Skipping alerts for disk {disk_id} (alerts disabled)")
+                continue
             
             # Update state and get alert info
             state_result = state_tracker.update_disk(
@@ -259,13 +288,18 @@ def settings_page():
 @app.route('/api/disk_health', methods=['GET'])
 def get_disk_health():
     """
-    Get the last cached disk scan results.
+    Get the last cached disk scan results with timestamp.
     Does NOT trigger a new scan.
     """
     if last_scan_data is None:
         return jsonify({"error": "No scan data available yet"}), 503
     
-    return jsonify(last_scan_data), 200
+    # Include timestamp with scan data
+    response = {
+        "last_scan_time": last_scan_time.isoformat() if last_scan_time else None,
+        "disks": last_scan_data
+    }
+    return jsonify(response), 200
 
 
 @app.route('/api/scan_now', methods=['POST'])

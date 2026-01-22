@@ -77,8 +77,15 @@
                     return response.json();
                 })
                 .then(data => {
-                    currentData = data;
-                    renderTable(data);
+                    // Handle both old format (array) and new format (object with timestamp)
+                    if (Array.isArray(data)) {
+                        currentData = data;
+                        lastScanTime = null;
+                    } else {
+                        currentData = data.disks || [];
+                        lastScanTime = data.last_scan_time;
+                    }
+                    renderTable(currentData);
                     updateLastUpdated();
                     updateScannerStatus();
                 })

@@ -43,26 +43,26 @@ All deliverables have been implemented, tested for syntax correctness, and docum
 │          DiskWarden Service-Driven System            │
 ├──────────────────────────────────────────────────────┤
 │                                                      │
-│  ┌─ Flask Web UI (Port 7500)                        │
-│  │  ├─ GET  /api/disk_health     (cached data)      │
-│  │  ├─ POST /api/scan_now        (manual trigger)   │
-│  │  ├─ GET  /api/status          (scanner info)     │
-│  │  └─ Settings API              (live updates)     │
-│  │                                                  │
-│  ├─ Background Scheduler (APScheduler)             │
-│  │  └─ perform_disk_scan() every N seconds         │
-│  │     ├─ HDSentinel execution                     │
-│  │     ├─ State transitions                        │
-│  │     ├─ Alert dispatch (Discord, SMTP)           │
-│  │     └─ InfluxDB metrics write                   │
-│  │                                                  │
-│  └─ State Persistence (SQLite)                     │
-│     ├─ Disk state tracking                         │
-│     ├─ Alert cooldown timestamps                   │
-│     └─ Health history                              │
-│                                                    │
-└─ ↓ External Services (Optional) ↓ ──────────────────┘
-   │                                │
+│  ┌─ Flask Web UI (Port 7500)                         │
+│  │  ├─ GET  /api/disk_health     (cached data)       │
+│  │  ├─ POST /api/scan_now        (manual trigger)    │
+│  │  ├─ GET  /api/status          (scanner info)      │
+│  │  └─ Settings API              (live updates)      │
+│  │                                                   │
+│  ├─ Background Scheduler (APScheduler)               │
+│  │  └─ perform_disk_scan() every N seconds           │
+│  │     ├─ HDSentinel execution                       │
+│  │     ├─ State transitions                          │
+│  │     ├─ Alert dispatch (Discord, SMTP)             │
+│  │     └─ InfluxDB metrics write                     │
+│  │                                                   │
+│  └─ State Persistence (SQLite)                       │
+│     ├─ Disk state tracking                           │
+│     ├─ Alert cooldown timestamps                     │
+│     └─ Health history                                │
+│                                                      │
+└─ ↓ External Services (Optional) ↓ ───────────────────┘
+   │                              │
    ├─→ InfluxDB:8086 (metrics)    │
    ├─→ Grafana:3000 (dashboards)  │
    └─→ Discord/SMTP (alerts)      │
