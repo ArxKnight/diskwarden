@@ -156,43 +156,57 @@
 
         <div class="card mt-4 notification-section">
             <div class="card-header">
-                InfluxDB & Grafana Settings
+                InfluxDB Settings
             </div>
             <div class="card-body">
+                <p class="text-muted">InfluxDB stores disk health metrics for historical analysis. Running locally via Docker Compose.</p>
                 <form id="influxForm">
                     <div class="form-group">
                         <label for="influxEnabled">
                             <input type="checkbox" id="influxEnabled">
                             Enable InfluxDB Metrics
                         </label>
-                        <small class="form-text text-muted">Send disk metrics to InfluxDB for long-term storage and Grafana visualization.</small>
+                        <small class="form-text text-muted">Send disk metrics to InfluxDB for long-term storage.</small>
                     </div>
                     <div class="form-group">
                         <label for="influxUrl">InfluxDB URL</label>
-                        <small class="form-text text-muted">e.g., http://influxdb:8086 or http://localhost:8086</small>
+                        <small class="form-text text-muted">Local setup: http://influxdb:8086 | Remote: http://your-server:8086</small>
                         <input type="url" class="form-control" id="influxUrl" placeholder="http://influxdb:8086">
                     </div>
                     <div class="form-group">
-                        <label for="influxToken">InfluxDB API Token</label>
-                        <small class="form-text text-muted">Create an API token in InfluxDB UI.</small>
-                        <input type="password" class="form-control" id="influxToken">
+                        <label for="influxToken">InfluxDB API Token (Optional)</label>
+                        <small class="form-text text-muted">Leave blank for local setup (no authentication). For remote InfluxDB, create a token in InfluxDB UI.</small>
+                        <input type="password" class="form-control" id="influxToken" placeholder="Optional - leave blank for local setup">
                     </div>
                     <div class="form-group">
                         <label for="influxOrg">InfluxDB Organization</label>
                         <small class="form-text text-muted">Default: diskwarden</small>
-                        <input type="text" class="form-control" id="influxOrg" placeholder="diskwarden">
+                        <input type="text" class="form-control" id="influxOrg" placeholder="diskwarden" value="diskwarden">
                     </div>
                     <div class="form-group">
                         <label for="influxBucket">InfluxDB Bucket</label>
                         <small class="form-text text-muted">Default: diskwarden</small>
-                        <input type="text" class="form-control" id="influxBucket" placeholder="diskwarden">
-                    </div>
-                    <div class="form-group">
-                        <label for="grafanaUrl">Grafana URL (optional)</label>
-                        <small class="form-text text-muted">e.g., http://grafana:3000 - adds a Grafana link to navbar.</small>
-                        <input type="url" class="form-control" id="grafanaUrl">
+                        <input type="text" class="form-control" id="influxBucket" placeholder="diskwarden" value="diskwarden">
                     </div>
                     <button type="submit" class="btn btn-primary">Save InfluxDB Settings</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card mt-4 notification-section">
+            <div class="card-header">
+                Grafana Settings
+            </div>
+            <div class="card-body">
+                <p class="text-muted">Grafana displays disk health metrics from InfluxDB in a visual dashboard. Access from navbar when configured.</p>
+                <form id="grafanaForm">
+                    <div class="form-group">
+                        <label for="grafanaUrl">Grafana URL</label>
+                        <small class="form-text text-muted">Local: http://localhost:3000 or http://grafana:3000 | Access: admin / admin</small>
+                        <input type="url" class="form-control" id="grafanaUrl" placeholder="http://localhost:3000">
+                    </div>
+                    <small class="form-text text-muted d-block mb-3">A dashboard will be automatically created when you save this URL.</small>
+                    <button type="submit" class="btn btn-primary">Save Grafana Settings</button>
                 </form>
             </div>
         </div>
@@ -278,6 +292,7 @@
         });
 
         // InfluxDB Settings
+        // InfluxDB Settings
         document.getElementById('influxForm')?.addEventListener('submit', function(event) {
             event.preventDefault();
             const influxEnabled = document.getElementById('influxEnabled').checked;
@@ -285,7 +300,6 @@
             const influxToken = document.getElementById('influxToken').value;
             const influxOrg = document.getElementById('influxOrg').value;
             const influxBucket = document.getElementById('influxBucket').value;
-            const grafanaUrl = document.getElementById('grafanaUrl').value;
             
             fetch('/api/settings', {
                 method: 'POST',
@@ -295,13 +309,31 @@
                     influxUrl: influxUrl || 'http://influxdb:8086',
                     influxToken,
                     influxOrg: influxOrg || 'diskwarden',
-                    influxBucket: influxBucket || 'diskwarden',
-                    grafanaUrl
+                    influxBucket: influxBucket || 'diskwarden'
                 }),
             })
             .then(response => response.json())
             .then(data => showNotification('InfluxDB settings saved successfully!'))
             .catch(error => showNotification('Failed to save InfluxDB settings: ' + error.message, true));
+        });
+
+        // Grafana Settings
+        document.getElementById('grafanaForm')?.addEventListener('submit', function(event) {
+            event.preventDefault();
+            const grafanaUrl = document.getElementById('grafanaUrl').value;
+            
+            fetch('/api/settings', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ grafanaUrl }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                showNotification('Grafana settings saved successfully!');
+                // Update navbar link
+                setTimeout(() => window.location.reload(), 1000);
+            })
+            .catch(error => showNotification('Failed to save Grafana settings: ' + error.message, true));
         });
 
         function sendTestMessage() {

@@ -6,6 +6,7 @@ import os
 import sys
 import json
 import logging
+import socket
 from datetime import datetime, timedelta
 from threading import Lock
 from flask import Flask, request, jsonify, render_template
@@ -36,6 +37,23 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
+
+
+def get_container_hostname():
+    """Get the hostname of this container (for Docker networking)."""
+    try:
+        return socket.gethostname()
+    except:
+        return None
+
+
+def resolve_hostname(hostname):
+    """Resolve a hostname to IP address, useful for Docker DNS."""
+    try:
+        ip = socket.gethostbyname(hostname)
+        return ip
+    except socket.gaierror:
+        return None
 
 # Global state
 settings_lock = Lock()
@@ -467,6 +485,58 @@ def test_message():
 # Initialization
 # ============================================================================
 
+def check_influxdb_connection(settings):
+    """Check if InfluxDB is reachable and report status."""
+    if not settings.get('influxEnabled', False):
+        logger.info("InfluxDB: Disabled in settings")
+        return False
+    
+    url = settings.get('influxUrl', 'http://influxdb:8086')
+    try:
+        response = requests.get(f"{url}/health", timeout=5)
+        if response.status_code == 200:
+            logger.info(f"✓ InfluxDB: Connected ({url})")
+            return True
+        else:
+            logger.warning(f"✗ InfluxDB: Returned status {response.status_code} ({url})")
+            return False
+    except requests.exceptions.ConnectionError:
+        logger.warning(f"✗ InfluxDB: Connection refused ({url})")
+        logger.warning(f"  → IMPORTANT: Use 'influxdb' hostname (Docker DNS will resolve it)")
+        logger.warning(f"  → Save InfluxDB URL as: http://influxdb:8086")
+        logger.warning(f"  → Metrics will still be written even if this check fails")
+        return False
+    except Exception as e:
+        logger.warning(f"✗ InfluxDB: Error checking connection: {e}")
+        return False
+
+
+def check_grafana_connection(settings):
+    """Check if Grafana is reachable and report status."""
+    url = settings.get('grafanaUrl', '')
+    if not url:
+        logger.info("Grafana: No URL configured in settings")
+        return False
+    
+    try:
+        response = requests.get(f"{url}/api/health", timeout=5)
+        if response.status_code == 200:
+            logger.info(f"✓ Grafana: Connected ({url})")
+            return True
+        else:
+            logger.warning(f"✗ Grafana: Returned status {response.status_code} ({url})")
+            return False
+    except requests.exceptions.ConnectionError:
+        logger.warning(f"✗ Grafana: Connection refused ({url})")
+        logger.warning(f"  → Grafana URL is for browser access (192.x address is correct)")
+        logger.warning(f"  → This check may fail if external IP isn't routable from container")
+        logger.warning(f"  → Dashboard link will still work from browser - check fails only at startup")
+        return False
+    except Exception as e:
+        logger.warning(f"✗ Grafana: Error checking connection: {e}")
+        return False
+
+
 def init_app():
     """Initialize the Flask application."""
     global last_scan_data
@@ -475,6 +545,19 @@ def init_app():
     
     # Load initial settings and configure mail
     update_mail_config()
+    
+    # Check external service connectivity
+    settings = load_settings()
+    logger.info("--- External Services Status ---")
+    
+    # Log configuration for diagnostics
+    influx_url = settings.get('influxUrl', 'http://influxdb:8086')
+    grafana_url = settings.get('grafanaUrl', '')
+    logger.info(f"Configuration: InfluxDB at {influx_url}, Grafana at {grafana_url if grafana_url else '(not configured)'}")
+    
+    check_influxdb_connection(settings)
+    check_grafana_connection(settings)
+    logger.info("--- Starting Services ---")
     
     # Start background scanner if enabled
     schedule_scanner()

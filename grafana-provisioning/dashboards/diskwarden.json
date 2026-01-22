@@ -1,0 +1,104 @@
+{
+  "dashboard": {
+    "id": null,
+    "uid": "diskwarden-health",
+    "title": "DiskWarden Health Monitor",
+    "tags": ["diskwarden", "disk", "health"],
+    "timezone": "browser",
+    "schemaVersion": 27,
+    "version": 0,
+    "refresh": "30s",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Disk Health Percentage",
+        "type": "timeseries",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+        "targets": [
+          {
+            "refId": "A",
+            "query": "from(bucket: \"diskwarden\") |> range(start: -24h) |> filter(fn: (r) => r._measurement == \"disk_health\") |> filter(fn: (r) => r._field == \"health_percent\")"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "min": 0,
+            "max": 100,
+            "color": {"mode": "thresholds"},
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"color": "red", "value": null},
+                {"color": "yellow", "value": 50},
+                {"color": "green", "value": 80}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 2,
+        "title": "Temperature (°C)",
+        "type": "timeseries",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+        "targets": [
+          {
+            "refId": "A",
+            "query": "from(bucket: \"diskwarden\") |> range(start: -24h) |> filter(fn: (r) => r._measurement == \"disk_health\") |> filter(fn: (r) => r._field == \"temp_c\")"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "°C",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 40},
+                {"color": "red", "value": 50}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 3,
+        "title": "Power On Hours",
+        "type": "timeseries",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+        "targets": [
+          {
+            "refId": "A",
+            "query": "from(bucket: \"diskwarden\") |> range(start: -24h) |> filter(fn: (r) => r._measurement == \"disk_health\") |> filter(fn: (r) => r._field == \"power_on_hours\")"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "h"
+          }
+        }
+      },
+      {
+        "id": 4,
+        "title": "Performance (%)",
+        "type": "timeseries",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8},
+        "targets": [
+          {
+            "refId": "A",
+            "query": "from(bucket: \"diskwarden\") |> range(start: -24h) |> filter(fn: (r) => r._measurement == \"disk_health\") |> filter(fn: (r) => r._field == \"performance_percent\")"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "min": 0,
+            "max": 100
+          }
+        }
+      }
+    ]
+  },
+  "overwrite": true
+}

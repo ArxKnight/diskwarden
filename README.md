@@ -21,7 +21,12 @@ is critical, but heavyweight monitoring stacks are unnecessary.
 - Discord webhook notifications
 - Email alerts via SMTP
 - Simple JSON-based configuration
-- Docker support
+- **Optional InfluxDB metrics collection** (time-series monitoring)
+- **Optional Grafana dashboard integration** (visual analytics)
+- Per-disk alert disabling (useful for USB/external drives)
+- Last scan timestamp tracking
+- Docker support with automatic hostname resolution
+- **Unraid-optimized** deployment with bridge network support
 
 ---
 

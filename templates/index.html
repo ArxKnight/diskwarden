@@ -26,6 +26,9 @@
                 <li class="nav-item">
                     <a class="nav-link" href="/settings">Settings</a>
                 </li>
+                <li class="nav-item" id="grafanaNavItem" style="display: none;">
+                    <a class="nav-link" id="grafanaLink" href="#" target="_blank" rel="noopener noreferrer">📊 Grafana</a>
+                </li>
             </ul>
             <div class="form-inline">
                 <label class="switch">
@@ -248,6 +251,22 @@
             }
         }
 
+        function updateGrafanaLink() {
+            // Load Grafana URL from settings
+            fetch('/api/settings')
+                .then(response => response.json())
+                .then(data => {
+                    const grafanaUrl = data.grafanaUrl;
+                    if (grafanaUrl && grafanaUrl.trim()) {
+                        const navItem = document.getElementById('grafanaNavItem');
+                        const link = document.getElementById('grafanaLink');
+                        link.href = grafanaUrl;
+                        navItem.style.display = 'inline-block';
+                    }
+                })
+                .catch(error => console.log('Could not load Grafana URL'));
+        }
+
         function startAutoRefresh() {
             fetchDiskHealth();
             // Refresh every 30 seconds to show latest cached data from background scanner
@@ -256,6 +275,7 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             loadTheme();
+            updateGrafanaLink();
             startAutoRefresh();
         });
     </script>
