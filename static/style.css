@@ -84,6 +84,12 @@ body {
     margin-bottom: 20px;
 }
 
+.page-title {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin-bottom: 30px;
+}
+
 .switch {
     position: relative;
     display: inline-block;
