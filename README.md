@@ -1,4 +1,4 @@
-# DiskWarden
+# 🛡️ DiskWarden
 
 DiskWarden is a lightweight disk health monitoring and alerting tool built around
 HDSentinel, with a simple web UI and notification support via Discord and email.
@@ -12,7 +12,7 @@ is critical, but heavyweight monitoring stacks are unnecessary.
 
 ---
 
-## Features
+## ✨ Features
 
 - Reads disk health data directly from HDSentinel
 - Web-based dashboard (Flask)
@@ -24,7 +24,7 @@ is critical, but heavyweight monitoring stacks are unnecessary.
 
 ---
 
-## How It Works
+## ⚙️ How It Works
 
 DiskWarden runs HDSentinel on the host system and parses its output to extract:
 
@@ -44,7 +44,7 @@ you via Discord and/or email.
 
 ---
 
-## Web Interface
+## 🌐 Web Interface
 
 DiskWarden exposes a small web UI that allows you to:
 
@@ -58,13 +58,13 @@ http://<host>:7500
 
 ---
 
-## Requirements
+## 🧩 Requirements
 
-### Host Requirements
+### 🖥️ Host Requirements
 - Python 3.9+
 - HDSentinel installed and accessible on the machine running DiskWarden
 
-### Python Dependencies
+### 📦 Python Dependencies
 
 pip install -r requirements.txt
 
