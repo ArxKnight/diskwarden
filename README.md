@@ -1,4 +1,5 @@
 # 🛡️ DiskWarden
+![DiskWarden Logo](/static/img/diskwarden_logo.png)
 
 DiskWarden is a lightweight disk health monitoring and alerting tool built around
 HDSentinel, with a simple web UI and notification support via Discord and email.
