@@ -54,24 +54,76 @@ def settings_endpoint():
         except Exception as e:
             return jsonify({"error": str(e)}), 500
     else:
-        # Save new settings
-        settings = request.json
+        # Save new settings while preserving existing ones
+        try:
+            # Load existing settings
+            with open('settings.json', 'r') as f:
+                existing_settings = json.load(f)
+        except:
+            existing_settings = {}
+        
+        # Merge with new settings
+        new_settings = request.json
+        existing_settings.update(new_settings)
+        
+        # Save merged settings
+        with open('settings.json', 'w') as f:
+            json.dump(existing_settings, f)
+        
+        # Update app config with current settings
+        app.config.update(
+            MAIL_SERVER=existing_settings.get('smtpServer', 'smtp.gmail.com'),
+            MAIL_PORT=int(existing_settings.get('smtpPort', 587)),
+            MAIL_USE_TLS=True,
+            MAIL_USERNAME=existing_settings.get('email', ''),
+            MAIL_PASSWORD=existing_settings.get('emailPassword', '')
+        )
+        return jsonify({"message": "Settings saved"}), 200
+
+@app.route('/api/email_settings', methods=['POST'])
+def email_settings_endpoint():
+    # Save email settings and update mail configuration
+    try:
+        settings_data = request.json
+        # Load existing settings
+        with open('settings.json', 'r') as f:
+            settings = json.load(f)
+        # Update with new email settings
+        settings.update({
+            'smtpServer': settings_data.get('smtpServer'),
+            'smtpPort': int(settings_data.get('smtpPort', 587)),
+            'email': settings_data.get('email'),
+            'emailPassword': settings_data.get('emailPassword')
+        })
+        # Save updated settings
         with open('settings.json', 'w') as f:
             json.dump(settings, f)
+        # Update app config
         app.config.update(
             MAIL_SERVER=settings.get('smtpServer', 'smtp.gmail.com'),
-            MAIL_PORT=settings.get('smtpPort', 587),
+            MAIL_PORT=int(settings.get('smtpPort', 587)),
             MAIL_USE_TLS=True,
             MAIL_USERNAME=settings.get('email', ''),
             MAIL_PASSWORD=settings.get('emailPassword', '')
         )
-        return jsonify({"message": "Settings saved"}), 200
+        return jsonify({"message": "Email settings saved"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/api/test_email', methods=['POST'])
 def test_email():
     settings = request.json
     try:
-        send_email("Test Email", settings['email'], "This is a test email from Disk Health Monitor.")
+        # Reconfigure mail with the provided settings
+        app.config.update(
+            MAIL_SERVER=settings.get('smtpServer', 'smtp.gmail.com'),
+            MAIL_PORT=int(settings.get('smtpPort', 587)),
+            MAIL_USE_TLS=True,
+            MAIL_USERNAME=settings.get('email', ''),
+            MAIL_PASSWORD=settings.get('emailPassword', '')
+        )
+        mail.init_app(app)
+        send_email("Test Email from DiskWarden", settings['email'], "This is a test email from Disk Health Monitor. If you received this, your SMTP settings are configured correctly!")
         return jsonify({"message": "Test email sent successfully"}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500

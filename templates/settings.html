@@ -254,9 +254,13 @@
 
         function sendTestEmail() {
             const email = document.getElementById('email').value;
-            if (!email) {
+            const smtpServer = document.getElementById('smtpServer').value;
+            const smtpPort = document.getElementById('smtpPort').value;
+            const emailPassword = document.getElementById('emailPassword').value;
+            
+            if (!email || !smtpServer || !smtpPort || !emailPassword) {
                 const notification = document.getElementById('notification');
-                notification.innerText = 'Please enter an email address to send a test email.';
+                notification.innerText = 'Please fill in all email settings before sending a test email.';
                 notification.className = 'alert alert-warning';
                 notification.style.display = 'block';
                 setTimeout(() => {
@@ -269,13 +273,18 @@
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ email }),
+                body: JSON.stringify({ email, smtpServer, smtpPort, emailPassword }),
             })
             .then(response => response.json())
             .then(data => {
                 const notification = document.getElementById('notification');
-                notification.innerText = 'Test email sent successfully!';
-                notification.className = 'alert alert-success';
+                if (data.error) {
+                    notification.innerText = 'Failed to send test email: ' + data.error;
+                    notification.className = 'alert alert-danger';
+                } else {
+                    notification.innerText = 'Test email sent successfully! Check your inbox.';
+                    notification.className = 'alert alert-success';
+                }
                 notification.style.display = 'block';
                 setTimeout(() => {
                     notification.style.display = 'none';
@@ -283,7 +292,7 @@
             })
             .catch(error => {
                 const notification = document.getElementById('notification');
-                notification.innerText = 'Failed to send test email.';
+                notification.innerText = 'Failed to send test email: ' + error.message;
                 notification.className = 'alert alert-danger';
                 notification.style.display = 'block';
                 setTimeout(() => {
