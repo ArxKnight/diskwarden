@@ -36,18 +36,13 @@
         <h1 class="text-center">Settings</h1>
         <div class="card mt-4 notification-section">
             <div class="card-header">
-                Discord Notification Settings
+                Health Threshold Settings
             </div>
             <div class="card-body">
-                <form id="settingsForm">
-                    <div class="form-group">
-                        <label for="webhookUrl">Discord Webhook URL</label>
-                        <small class="form-text text-muted">Add a webhook URL to send notifications to your discord server when the health of a disk goes under your specified value.</small>
-                        <input type="url" class="form-control" id="webhookUrl" required>
-                    </div>
+                <form id="thresholdForm">
                     <div class="form-group">
                         <label for="healthThreshold">Health Threshold (%)</label>
-                        <small class="form-text text-muted">Set the health percentage threshold for sending notifications about disk health to your Discord server.</small>
+                        <small class="form-text text-muted">Set the health percentage threshold for sending notifications about disk health to your Discord server and email.</small>
                         <select class="form-control" id="healthThreshold" required style="width: auto;">
                             <option value="10">10%</option>
                             <option value="20">20%</option>
@@ -59,6 +54,21 @@
                             <option value="80">80%</option>
                             <option value="90">90%</option>
                         </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save Threshold</button>
+                </form>
+            </div>
+        </div>
+        <div class="card mt-4 notification-section">
+            <div class="card-header">
+                Discord Notification Settings
+            </div>
+            <div class="card-body">
+                <form id="settingsForm">
+                    <div class="form-group">
+                        <label for="webhookUrl">Discord Webhook URL</label>
+                        <small class="form-text text-muted">Add a webhook URL to send notifications to your discord server when the health of a disk goes under your specified value.</small>
+                        <input type="url" class="form-control" id="webhookUrl" required>
                     </div>
                     <button type="submit" class="btn btn-primary">Save Settings</button>
                     <button type="button" class="btn btn-secondary" onclick="sendTestMessage()">Send Test Message</button>
@@ -102,18 +112,17 @@
         document.getElementById('settingsForm').addEventListener('submit', function(event) {
             event.preventDefault();
             const webhookUrl = document.getElementById('webhookUrl').value;
-            const healthThreshold = document.getElementById('healthThreshold').value;
             fetch('/api/settings', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ webhookUrl, healthThreshold }),
+                body: JSON.stringify({ webhookUrl }),
             })
             .then(response => response.json())
             .then(data => {
                 const notification = document.getElementById('notification');
-                notification.innerText = 'Settings saved successfully!';
+                notification.innerText = 'Discord settings saved successfully!';
                 notification.className = 'alert alert-success';
                 notification.style.display = 'block';
                 setTimeout(() => {
@@ -122,13 +131,45 @@
             })
             .catch(error => {
                 const notification = document.getElementById('notification');
-                notification.innerText = 'Failed to save settings.';
+                notification.innerText = 'Failed to save Discord settings.';
                 notification.className = 'alert alert-danger';
                 notification.style.display = 'block';
                 setTimeout(() => {
                     notification.style.display = 'none';
                 }, 5000);
-                console.error('Error saving settings:', error);
+                console.error('Error saving Discord settings:', error);
+            });
+        });
+
+        document.getElementById('thresholdForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const healthThreshold = document.getElementById('healthThreshold').value;
+            fetch('/api/settings', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ healthThreshold }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                const notification = document.getElementById('notification');
+                notification.innerText = 'Health threshold saved successfully!';
+                notification.className = 'alert alert-success';
+                notification.style.display = 'block';
+                setTimeout(() => {
+                    notification.style.display = 'none';
+                }, 5000);
+            })
+            .catch(error => {
+                const notification = document.getElementById('notification');
+                notification.innerText = 'Failed to save health threshold.';
+                notification.className = 'alert alert-danger';
+                notification.style.display = 'block';
+                setTimeout(() => {
+                    notification.style.display = 'none';
+                }, 5000);
+                console.error('Error saving health threshold:', error);
             });
         });
 
