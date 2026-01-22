@@ -28,10 +28,10 @@ is critical, but heavyweight monitoring stacks are unnecessary.
 
 DiskWarden runs HDSentinel on the host system and parses its output to extract:
 
+- Drive path
 - Disk model
 - Serial number
 - Capacity
-- Interface type
 - Temperature
 - Highest recorded temperature
 - Health percentage
