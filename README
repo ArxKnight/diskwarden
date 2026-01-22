@@ -7,6 +7,10 @@ It is designed for servers and homelabs where early warning of disk degradation
 is critical, but heavyweight monitoring stacks are unnecessary.
 
 ---
+## 📊 DiskWarden Dashboard
+![DiskWarden Dashboard](assets/diskwarden-dashboard.png)
+
+---
 
 ## Features
 
