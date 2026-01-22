@@ -8,7 +8,7 @@ is critical, but heavyweight monitoring stacks are unnecessary.
 
 ---
 ## 📊 DiskWarden Dashboard
-![DiskWarden Dashboard](assets/diskwarden-dashboard.png)
+![DiskWarden Dashboard](/static/img/diskwarden-dashboard.png)
 
 ---
 
