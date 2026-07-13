@@ -75,15 +75,15 @@ pip install -r requirements.txt
 
 ### Docker (recommended)
 
-DiskWarden is primarily distributed as a Docker image.
+DiskWarden is primarily distributed as a container image from GitHub Container Registry.
 
-docker pull arxknight/diskwarden:latest
+docker pull ghcr.io/arxknight/diskwarden:latest
 
 docker run -d \
   -p 7500:7500 \
   --privileged \
   -v /dev:/dev \
-  arxknight/diskwarden:latest
+  ghcr.io/arxknight/diskwarden:latest
 
 IMPORTANT:
 DiskWarden requires access to host disk devices to read health data.
@@ -104,5 +104,8 @@ http://localhost:7500
 
 ## Docker Image
 
-The official Docker image is available on Docker Hub:
-https://hub.docker.com/r/arxknight/diskwarden
+The official container image is published on GitHub Container Registry:
+ghcr.io/arxknight/diskwarden:latest
+
+Release builds may also be published with immutable short Git SHA tags, for example:
+ghcr.io/arxknight/diskwarden:72ab7d8
